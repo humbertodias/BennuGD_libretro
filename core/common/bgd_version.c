@@ -12,3 +12,8 @@ const char* bgd_getversion()
 
     return buffer;
 }
+
+
+const char *retroarch_git_version(void) {
+    return bgd_getversion();
+}

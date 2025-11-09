@@ -52,6 +52,13 @@ static int modsys_exec( INSTANCE * my, int * params )
     int argc = params[2];
     char ** argv;
     int n = 0;
+
+#if defined(__SWITCH__)
+    // The Nintendo Switch (Horizon OS) does not support fork/exec/spawn.
+    printf("[mod_sys] exec not supported on Switch: %s\n", filename);
+    return -1;  // Not supported
+#endif
+
 #ifndef WIN32
     pid_t child;
 #endif
