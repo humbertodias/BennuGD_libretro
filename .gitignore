@@ -7,3 +7,6 @@ CMakeCache.txt
 *.o
 *.nro
 *.elf
+.idea/
+*.iml
+.DS_Store
