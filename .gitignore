@@ -6,3 +6,4 @@ CMakeCache.txt
 *.a
 *.o
 *.nro
+*.elf
