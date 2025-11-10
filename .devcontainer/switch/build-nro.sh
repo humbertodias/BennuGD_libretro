@@ -29,7 +29,7 @@ echo "✅ Created: $CURDIR/libretro_libnx.a"
 cd "$CURDIR"
 if [ ! -d retroarch ]; then
   echo "🌐 Cloning RetroArch..."
-  git clone --depth=1 --branch v1.22.0 https://github.com/libretro/RetroArch.git retroarch
+  git clone --depth=1 --branch v1.21.0 https://github.com/libretro/RetroArch.git retroarch
 fi
 
 cp "$CURDIR/libretro_libnx.a" retroarch/

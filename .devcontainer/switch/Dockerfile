@@ -5,8 +5,7 @@ USER root
 RUN echo "containeruser:containeruser" | chpasswd \
  && usermod -aG sudo containeruser
 
-ADD build-nro.sh /usr/local/bin/build-nro.sh
-RUN chmod +x /usr/local/bin/build-nro.sh
-
 USER containeruser
 
+# Usage inside the container:
+# .devcontainer/switch/build-nro.sh
