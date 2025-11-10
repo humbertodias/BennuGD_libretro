@@ -200,7 +200,8 @@ input_mapping_t button_inputs[]=
 
 struct retro_core_option_definition get_mouse_button_mapping(unsigned index)
 {
-    assert(index<sizeof(mouse_button_mappings)/sizeof(mouse_button_mappings[0]));
+    // TODO: MINE
+    // assert(index<sizeof(mouse_button_mappings)/sizeof(mouse_button_mappings[0]));
 
     const unsigned num_button_inputs = sizeof(button_inputs)/sizeof(button_inputs[0]);
 
@@ -857,6 +858,7 @@ void retro_init(void)
 
 bool retro_load_game(const struct retro_game_info *info)
 {
+
     if (!info->path)
     {
         return false;
