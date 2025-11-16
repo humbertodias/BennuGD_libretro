@@ -83,14 +83,14 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -s USE_SDL=2")
 
     # LLVM bitcode
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -emit-llvm -c")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -emit-llvm -c")
+    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -emit-llvm")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -emit-llvm")
 
     # extension .bc
     set(CMAKE_EXECUTABLE_SUFFIX ".bc")
     set(CMAKE_STATIC_LIBRARY_SUFFIX ".bc")
 
-    set( CORE_LIBRARY_TYPE STATIC)
+    set(CORE_LIBRARY_TYPE STATIC)
 
 endif()
 
