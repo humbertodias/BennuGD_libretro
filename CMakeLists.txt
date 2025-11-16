@@ -92,6 +92,13 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
 
     set(CORE_LIBRARY_TYPE STATIC)
 
+
+set_target_properties(bennugd_libretro PROPERTIES
+        COMPILE_OPTIONS "-c;-emit-llvm"
+        LINK_FLAGS "-r"
+        SUFFIX ".bc"
+    )
+
 endif()
 
 include(FetchContent)
