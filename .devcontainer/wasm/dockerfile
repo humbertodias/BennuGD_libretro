@@ -1,0 +1,4 @@
+FROM emscripten/emsdk:2.0.34
+
+# emcmake cmake -Bbuild -DCMAKE_BUILD_TYPE=Debug
+# cmake --build build

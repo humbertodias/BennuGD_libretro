@@ -19,7 +19,15 @@ add_subdirectory(sdl-libretro)
 add_subdirectory(sdl_mixer-libretro)
 set(SDL_MIXER_LIBRARIES "sdl_mixer-libretro" PARENT_SCOPE)
 
-add_library(bennugd_libretro SHARED
+GET_PROPERTY(TARGET_SUPPORTS_SHARED_LIBS_PROPERTY GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS)
+
+if (${TARGET_SUPPORTS_SHARED_LIBS_PROPERTY})
+    set( CORE_LIBRARY_TYPE SHARED)
+else()
+    set( CORE_LIBRARY_TYPE STATIC)
+endif()
+ 
+add_library(bennugd_libretro ${CORE_LIBRARY_TYPE}
     ${libretro-common_SOURCE_DIR}/libco/libco.c
     ${libretro-common_SOURCE_DIR}/vfs/vfs_implementation.c
     ${libretro-common_SOURCE_DIR}/file/file_path.c
@@ -49,6 +57,9 @@ else()
     target_compile_definitions(bennugd_libretro PRIVATE HAVE_POSIX_MEMALIGN=0 )
 endif()
 
+if (EMSCRIPTEN)
+    target_compile_definitions(bennugd_libretro PRIVATE EMSCRIPTEN=1 )
+endif()
 
 target_include_directories(bennugd_libretro PRIVATE "${libretro-common_SOURCE_DIR}/include")
 
