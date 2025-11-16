@@ -78,15 +78,15 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
 
     set(EMSCRIPTEN TRUE)
 
-    # Flags específicas
+    # specific flags
     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -O3 -s USE_SDL=2")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -s USE_SDL=2")
 
-    # Gerar LLVM bitcode
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -emit-llvm")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -emit-llvm")
+    # LLVM bitcode
+    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -emit-llvm -c")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -emit-llvm -c")
 
-    # Mudar extensão de saída para .bc
+    # extension .bc
     set(CMAKE_EXECUTABLE_SUFFIX ".bc")
     set(CMAKE_STATIC_LIBRARY_SUFFIX ".bc")
 
