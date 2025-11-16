@@ -1,0 +1,55 @@
+name: Build Libretro Core (Emscripten)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-wasm:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install Emscripten SDK
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.62
+          actions-cache-folder: emsdk-cache
+
+      - name: Show Emscripten version
+        run: emcc --version
+
+      # Configure CMake (to generate the .bc file)
+      - name: Configure CMake
+        run: |
+          emcmake cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      # Build the .bc core
+      - name: Build LLVM bitcode (.bc)
+        run: |
+          cmake --build build --config Release
+
+      # Convert .bc → .js + .wasm
+      - name: Link to JS + WASM
+        run: |
+          emcc build/bennugd_libretro.bc \
+            -o bennugd_libretro.js \
+            -s MODULARIZE=1 \
+            -s EXPORT_NAME="BennuGDLR" \
+            -s ALLOW_MEMORY_GROWTH=1 \
+            -s ENVIRONMENT="web" \
+            -s FORCE_FILESYSTEM=1
+
+      # Upload build artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bennugd_libretro_wasm_build
+          path: |
+            bennugd_libretro.js
+            bennugd_libretro.wasm
