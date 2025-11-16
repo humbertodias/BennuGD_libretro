@@ -60,11 +60,14 @@ endif()
 if (EMSCRIPTEN)
     target_compile_definitions(bennugd_libretro PRIVATE EMSCRIPTEN=1 )
     
-    set_target_properties(bennugd_libretro PROPERTIES
-    COMPILE_FLAGS "-emit-llvm"
-    OUTPUT_NAME "bennugd_libretro"
+set_target_properties(bennugd_libretro PROPERTIES
+        COMPILE_OPTIONS "-c;-emit-llvm"
+        LINK_FLAGS "-r"
+        SUFFIX ".bc"
     )
+
 endif()
+
 
 target_include_directories(bennugd_libretro PRIVATE "${libretro-common_SOURCE_DIR}/include")
 
