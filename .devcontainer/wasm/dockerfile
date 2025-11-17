@@ -2,3 +2,7 @@ FROM emscripten/emsdk:2.0.34
 
 # emcmake cmake -Bbuild -DCMAKE_BUILD_TYPE=Debug
 # cmake --build build
+
+# or
+# cmake -B build   -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+# cmake --build build

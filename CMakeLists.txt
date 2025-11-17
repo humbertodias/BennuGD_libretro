@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14...3.24)
-project(bennugd_libretro C)
+project(bennugd_libretro C ASM)
 set (CMAKE_C_STANDARD 11)
 
 option(NO_SYSTEM_DEPENDENCIES "Don't search dependencies but build them locally" ON)
@@ -76,29 +76,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "compile as PIC by default")
 if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     message(STATUS "Building for Emscripten/WebAssembly")
 
-    set(EMSCRIPTEN TRUE)
-
-    # specific flags
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -O3 -s USE_SDL=2")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -s USE_SDL=2")
-
-    # LLVM bitcode
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -emit-llvm")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -emit-llvm")
-
-    # extension .bc
-    set(CMAKE_EXECUTABLE_SUFFIX ".bc")
-    set(CMAKE_STATIC_LIBRARY_SUFFIX ".bc")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -s USE_SDL=1")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -s USE_SDL=1")
 
     set(CORE_LIBRARY_TYPE STATIC)
-
-
-set_target_properties(bennugd_libretro PROPERTIES
-        COMPILE_OPTIONS "-c;-emit-llvm"
-        LINK_FLAGS "-r"
-        SUFFIX ".bc"
-    )
-
 endif()
 
 include(FetchContent)
