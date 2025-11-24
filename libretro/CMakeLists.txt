@@ -13,7 +13,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(  libretro-common )
 
-include_directories(${libretro-common_SOURCE_DIR}/include)
+include_directories(${libretro-common_SOURCE_DIR}/include ../core/bgdi/include ../core/bgdrtm/include)
 add_subdirectory(sdl-libretro)
 
 add_subdirectory(sdl_mixer-libretro)
@@ -47,6 +47,14 @@ add_library(bennugd_libretro ${CORE_LIBRARY_TYPE}
     libretro.c
     filesystem.c
     filestream_gzip.c
+    ../modules/libvideo/g_video.c
+    sdl-libretro/src/audio/SDL_audio.c
+    ../core/bgdi/src/main.c
+    ../core/bgdrtm/src/misc.c
+    ../core/bgdrtm/src/sysprocs.c
+    ../modules/libgrbase/g_pal.c
+    ../modules/libgrbase/libgrbase.c
+    ../core/bgdrtm/src/dcbr.c
 )
 
 # libco expects HAVE_POSIX_MEMALIGN to be defined
@@ -58,12 +66,13 @@ else()
 endif()
 
 if (EMSCRIPTEN)
-    target_compile_definitions(bennugd_libretro PRIVATE EMSCRIPTEN=1 )
+    target_compile_definitions(bennugd_libretro PRIVATE EMSCRIPTEN=1)
     
-set_target_properties(bennugd_libretro PROPERTIES
-        COMPILE_OPTIONS "-c;-emit-llvm"
-        LINK_FLAGS "-r"
+    target_compile_options(bennugd_libretro PRIVATE -emit-llvm -c)
+    set_target_properties(bennugd_libretro PROPERTIES
+        OUTPUT_NAME "bennugd_libretro_emscripten"
         SUFFIX ".bc"
+        LINKER_LANGUAGE C
     )
 
 endif()

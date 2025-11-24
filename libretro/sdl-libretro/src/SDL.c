@@ -84,6 +84,12 @@ int SDL_InitSubSystem(Uint32 flags)
 #endif
 
 #if !SDL_VIDEO_DISABLED
+#ifdef __EMSCRIPTEN__
+if ((flags & SDL_INIT_VIDEO) && !(SDL_initialized & SDL_INIT_VIDEO)) {
+    // Em WASM, apenas marcamos como inicializado
+    SDL_initialized |= SDL_INIT_VIDEO;
+}
+#else
 	/* Initialize the video/event subsystem */
 	if ( (flags & SDL_INIT_VIDEO) && !(SDL_initialized & SDL_INIT_VIDEO) ) {
 		if ( SDL_VideoInit(SDL_getenv("SDL_VIDEODRIVER"),
@@ -92,6 +98,7 @@ int SDL_InitSubSystem(Uint32 flags)
 		}
 		SDL_initialized |= SDL_INIT_VIDEO;
 	}
+#endif
 #else
 	if ( flags & SDL_INIT_VIDEO ) {
 		SDL_SetError("SDL not built with video support");
@@ -130,20 +137,6 @@ int SDL_InitSubSystem(Uint32 flags)
 	}
 #endif
 
-#if !SDL_CDROM_DISABLED
-	/* Initialize the CD-ROM subsystem */
-	if ( (flags & SDL_INIT_CDROM) && !(SDL_initialized & SDL_INIT_CDROM) ) {
-		if ( SDL_CDROMInit() < 0 ) {
-			return(-1);
-		}
-		SDL_initialized |= SDL_INIT_CDROM;
-	}
-#else
-	if ( flags & SDL_INIT_CDROM ) {
-		SDL_SetError("SDL not built with cdrom support");
-		return(-1);
-	}
-#endif
 	return(0);
 }
 
@@ -172,13 +165,6 @@ int SDL_Init(Uint32 flags)
 
 void SDL_QuitSubSystem(Uint32 flags)
 {
-	/* Shut down requested initialized subsystems */
-#if !SDL_CDROM_DISABLED
-	if ( (flags & SDL_initialized & SDL_INIT_CDROM) ) {
-		SDL_CDROMQuit();
-		SDL_initialized &= ~SDL_INIT_CDROM;
-	}
-#endif
 #if !SDL_JOYSTICK_DISABLED
 	if ( (flags & SDL_initialized & SDL_INIT_JOYSTICK) ) {
 		SDL_JoystickQuit();

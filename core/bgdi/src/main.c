@@ -79,6 +79,10 @@ int bgdi_main(int argc, char *argv[])
 int main( int argc, char *argv[] )
 #endif
 {
+    // TODO: MINE
+    #if EMSCRIPTEN
+    return 0;
+    #endif
     bgd_malloc_initialize();
 
     char * filename = NULL, dcbname[ __MAX_PATH ], *ptr, *arg0;

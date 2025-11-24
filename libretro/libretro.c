@@ -93,7 +93,9 @@ enum_libretro_scale_mode_override_t libretro_scale_override = libretro_scale_mod
 static struct retro_system_av_info last_av_info;
 static bool bgd_finished = false;
 static bool game_unloading = false;
-extern int fps_value;
+// extern int fps_value;
+// TODO: MINE
+int fps_value;
 
 void suspend_bgd()
 {
@@ -887,8 +889,10 @@ bool retro_load_game_special(unsigned type, const struct retro_game_info *info, 
 void retro_unload_game(void)
 {
     // This notifies bgd that the main loop should quit
-    extern int must_exit;
-    must_exit = 1;
+    // extern int must_exit;
+    // must_exit = 1;
+    // TODO: MINE
+    int must_exit = 1;
     game_unloading = true;
     while (bgd_finished==false)
     {
