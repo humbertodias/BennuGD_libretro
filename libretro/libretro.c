@@ -928,7 +928,7 @@ void retro_run(void)
         int sample_rate = sdl_libretro_get_sample_rate();
 
         if (s->w != last_av_info.geometry.base_width ||  s->h != last_av_info.geometry.base_height || fps_value>last_av_info.timing.fps ||
-            last_av_info.timing.sample_rate != sample_rate)
+            (sample_rate > 0 && last_av_info.timing.sample_rate != sample_rate))
         {
             last_av_info.geometry.base_width = s->w;
             last_av_info.geometry.base_height = s->h;
@@ -952,7 +952,7 @@ void retro_run(void)
                 submit_new_avinfo = true;
             }
 
-            if (last_av_info.timing.sample_rate != sample_rate)
+            if (sample_rate > 0 && last_av_info.timing.sample_rate != sample_rate)
             {
                 last_av_info.timing.sample_rate = sample_rate;
                 submit_new_avinfo = true;

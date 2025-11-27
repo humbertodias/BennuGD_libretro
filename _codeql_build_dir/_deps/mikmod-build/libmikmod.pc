@@ -1,0 +1,12 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=/usr/local/lib
+includedir=/usr/local/include
+
+Name: libmikmod
+Description: Library for playing Module Files and for Sound Effects
+Version: 3.3.12
+URL: http://mikmod.sourceforge.net/
+Libs: -L${libdir} -lmikmod
+Libs.private: 
+Cflags: -I${includedir}
