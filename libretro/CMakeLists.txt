@@ -104,7 +104,8 @@ if (VITA)
         #COMMAND make -j -f Makefile.vita.salamander
         #COMMAND make -f Makefile.griffin platform=vita
         # Pass -fno-short-enums to ensure ABI compatibility with our static library
-        COMMAND ${CMAKE_COMMAND} -E env "CFLAGS=-fno-short-enums" "CXXFLAGS=-fno-short-enums" make -j -f Makefile.vita
+        # Use sh -c to properly set the environment variables before running make
+        COMMAND sh -c "CFLAGS='-fno-short-enums' CXXFLAGS='-fno-short-enums' make -j -f Makefile.vita"
         #COMMAND vita-make-fself -s retroarchvita_salamander.velf ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.self
         INSTALL_COMMAND ""
         DEPENDS bennugd_libretro_merged
