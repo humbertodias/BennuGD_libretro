@@ -77,8 +77,10 @@ if (CMAKE_TOOLCHAIN_FILE MATCHES "vita.toolchain.cmake")
     include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
     set(VITA TRUE)
     # VITA requires -fno-short-enums for ABI compatibility with all static libraries
-    # Use add_compile_options to ensure the flag applies to all targets including FetchContent dependencies
-    add_compile_options(-fno-short-enums)
+    # Must use CMAKE_C_FLAGS (not add_compile_options) to affect FetchContent dependencies
+    # because they are built in a different directory scope
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-short-enums" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-short-enums" CACHE STRING "" FORCE)
 endif()
 
 include(FetchContent)
