@@ -49,6 +49,8 @@ endif()
 
 if (VITA)
     target_compile_definitions(bennugd_libretro PRIVATE VITA=1 )
+    # Ensure -fno-short-enums for VITA builds
+    target_compile_options(bennugd_libretro PRIVATE -fno-short-enums)
 endif()
 
 target_include_directories(bennugd_libretro PRIVATE "${libretro-common_SOURCE_DIR}/include")

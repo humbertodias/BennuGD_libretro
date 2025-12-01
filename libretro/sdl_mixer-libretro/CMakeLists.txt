@@ -23,6 +23,10 @@ if (NO_SYSTEM_DEPENDENCIES OR NOT Ogg_FOUND)
     EXCLUDE_FROM_ALL
   )
   FetchContent_MakeAvailable( ogg )
+  # Ensure -fno-short-enums for VITA builds
+  if(VITA)
+    target_compile_options(ogg PRIVATE -fno-short-enums)
+  endif()
 endif()
 
 if (NO_SYSTEM_DEPENDENCIES OR NOT Vorbis_FOUND)
@@ -34,6 +38,16 @@ if (NO_SYSTEM_DEPENDENCIES OR NOT Vorbis_FOUND)
     EXCLUDE_FROM_ALL
   )
   FetchContent_MakeAvailable( vorbis )
+  # Ensure -fno-short-enums for VITA builds - envelope.c is in vorbis
+  if(VITA)
+    target_compile_options(vorbis PRIVATE -fno-short-enums)
+    if(TARGET vorbisfile)
+      target_compile_options(vorbisfile PRIVATE -fno-short-enums)
+    endif()
+    if(TARGET vorbisenc)
+      target_compile_options(vorbisenc PRIVATE -fno-short-enums)
+    endif()
+  endif()
 endif()
 
 set(BUILD_TESTING ${BUILD_TESTING_backup})
@@ -75,6 +89,10 @@ if (NO_SYSTEM_DEPENDENCIES OR NOT Mikmod_FOUND)
 
   FetchContent_MakeAvailable( mikmod )
   disable_all_warnings(mikmod-static)
+  # Ensure -fno-short-enums for VITA builds
+  if(VITA)
+    target_compile_options(mikmod-static PRIVATE -fno-short-enums)
+  endif()
 
   add_library (mymikmod INTERFACE)
   target_link_libraries(mymikmod INTERFACE mikmod-static)
@@ -109,6 +127,10 @@ set (SDL_mixer-src
 )
 
 add_library( sdl_mixer-libretro STATIC ${SDL_mixer-src})
+# Ensure -fno-short-enums for VITA builds
+if(VITA)
+    target_compile_options(sdl_mixer-libretro PRIVATE -fno-short-enums)
+endif()
 
 target_link_libraries(sdl_mixer-libretro Vorbis::vorbis;Vorbis::vorbisfile;Ogg::ogg;Mikmod::Mikmod;sdl-libretro )
 target_include_directories(sdl_mixer-libretro PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
