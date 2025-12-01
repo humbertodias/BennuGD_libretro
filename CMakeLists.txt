@@ -76,11 +76,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "compile as PIC by default")
 if (CMAKE_TOOLCHAIN_FILE MATCHES "vita.toolchain.cmake")
     include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
     set(VITA TRUE)
-    # VITA requires -fno-short-enums for ABI compatibility with all static libraries
-    # Must use CMAKE_C_FLAGS (not add_compile_options) to affect FetchContent dependencies
-    # because they are built in a different directory scope
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-short-enums" CACHE STRING "" FORCE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-short-enums" CACHE STRING "" FORCE)
 endif()
 
 include(FetchContent)
@@ -122,10 +117,6 @@ if (NO_SYSTEM_DEPENDENCIES OR NOT OpenSSL_FOUND)
         if (HAVE_NO_WUNUSED_PARAMETER) 
             target_compile_options(wolfssl PRIVATE "-Wno-unused-parameter")
         endif()
-        # Ensure -fno-short-enums for VITA builds
-        if(VITA)
-            target_compile_options(wolfssl PRIVATE -fno-short-enums)
-        endif()
         message("using internal wolfssl")
     else()
         set (LIBRESSL_APPS OFF CACHE BOOL "Build apps" FORCE)
@@ -147,12 +138,6 @@ if (NO_SYSTEM_DEPENDENCIES OR NOT OpenSSL_FOUND)
         disable_all_warnings(tls_obj)
         disable_all_warnings(tls_compat_obj)
         disable_all_warnings(tls)
-        # Ensure -fno-short-enums for VITA builds
-        if(VITA)
-            target_compile_options(crypto PRIVATE -fno-short-enums)
-            target_compile_options(ssl PRIVATE -fno-short-enums)
-            target_compile_options(tls PRIVATE -fno-short-enums)
-        endif()
         set(OPENSSL_CRYPTO_LIBRARY crypto)
         message("using internal libcrypto")
     endif()
@@ -172,10 +157,6 @@ if (NO_SYSTEM_DEPENDENCIES OR NOT ZLIB_FOUND)
         OVERRIDE_FIND_PACKAGE
     )
     FetchContent_MakeAvailable(zlib)
-    # Ensure -fno-short-enums for VITA builds
-    if(VITA)
-        target_compile_options(zlib PRIVATE -fno-short-enums)
-    endif()
 
     add_library(zlib_interface INTERFACE)
     target_link_libraries(zlib_interface INTERFACE zlib)
@@ -200,10 +181,6 @@ if (NO_SYSTEM_DEPENDENCIES OR NOT PNG_FOUND)
         EXCLUDE_FROM_ALL
     )
     FetchContent_MakeAvailable(libpng)
-    # Ensure -fno-short-enums for VITA builds
-    if(VITA)
-        target_compile_options(png_static PRIVATE -fno-short-enums)
-    endif()
     set (PNG_LIBRARIES png_static)
     add_library(mypng INTERFACE)
     target_link_libraries(mypng INTERFACE png_static)

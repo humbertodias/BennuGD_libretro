@@ -49,8 +49,6 @@ endif()
 
 if (VITA)
     target_compile_definitions(bennugd_libretro PRIVATE VITA=1 )
-    # Ensure -fno-short-enums for VITA builds
-    target_compile_options(bennugd_libretro PRIVATE -fno-short-enums)
 endif()
 
 target_include_directories(bennugd_libretro PRIVATE "${libretro-common_SOURCE_DIR}/include")
@@ -103,12 +101,7 @@ if (VITA)
         COMMAND cp "$<TARGET_FILE:bennugd_libretro_merged>" libretro_vita.a
         COMMAND touch runloop.c # Force a relink 
         # https://docs.libretro.com/development/retroarch/compilation/psvita/
-        #COMMAND make -j -f Makefile.vita.salamander
-        #COMMAND make -f Makefile.griffin platform=vita
-        # Pass -fno-short-enums to ensure ABI compatibility with our static library
-        # Use sh -c to properly set the environment variables before running make
-        COMMAND sh -c "CFLAGS='-fno-short-enums' CXXFLAGS='-fno-short-enums' make -j -f Makefile.vita"
-        #COMMAND vita-make-fself -s retroarchvita_salamander.velf ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.self
+        COMMAND make -j -f Makefile.vita
         INSTALL_COMMAND ""
         DEPENDS bennugd_libretro_merged
     )

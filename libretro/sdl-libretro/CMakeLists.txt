@@ -78,9 +78,5 @@ set (SDL-src
 add_compile_definitions(__LIBRETRO__ LSB_FIRST )
 
 add_library( sdl-libretro STATIC ${SDL-src})
-# Ensure -fno-short-enums for VITA builds
-if(VITA)
-    target_compile_options(sdl-libretro PRIVATE -fno-short-enums)
-endif()
 target_link_libraries(sdl-libretro Threads::Threads)
 target_include_directories(sdl-libretro PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
