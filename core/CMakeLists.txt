@@ -32,9 +32,6 @@ FetchContent_Declare(cmake_git_version_tracking
 FetchContent_MakeAvailable(cmake_git_version_tracking)
 
 add_library(core OBJECT ${COMMON_SRC} ${BGDRTM_SRC})
-if(VITA)
-    target_compile_options(core PRIVATE -fno-short-enums)
-endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
     set_source_files_properties("common/allocator.c" PROPERTIES COMPILE_OPTIONS "/experimental:c11atomics")

@@ -6,10 +6,6 @@ else()
     add_executable(bgdi "src/main.c")
 endif()
 
-if(VITA)
-    target_compile_options(bgdi PRIVATE -fno-short-enums)
-endif()
-
 target_include_directories(bgdi PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
