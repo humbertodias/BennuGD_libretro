@@ -103,7 +103,8 @@ if (VITA)
         # https://docs.libretro.com/development/retroarch/compilation/psvita/
         #COMMAND make -j -f Makefile.vita.salamander
         #COMMAND make -f Makefile.griffin platform=vita
-        COMMAND make -j -f Makefile.vita
+        # Pass -fno-short-enums to ensure ABI compatibility with our static library
+        COMMAND ${CMAKE_COMMAND} -E env "CFLAGS=-fno-short-enums" "CXXFLAGS=-fno-short-enums" make -j -f Makefile.vita
         #COMMAND vita-make-fself -s retroarchvita_salamander.velf ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.self
         INSTALL_COMMAND ""
         DEPENDS bennugd_libretro_merged
