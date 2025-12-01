@@ -9,7 +9,8 @@ build:
 	-DUSE_WOLFSSL=1 \
 	-DWOLFSSL_ASM=0 \
     -DHAVE_ASPRINTF=1 \
-	-DCMAKE_C_FLAGS="-DSOMAXCONN=128" \
+	-DCMAKE_C_FLAGS="-DSOMAXCONN=128 -fno-short-enums" \
+	-DCMAKE_CXX_FLAGS="-fno-short-enums" \
 	-DUNIX=FALSE \
 	-S .
 	cmake --build build

@@ -76,6 +76,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "compile as PIC by default")
 if (CMAKE_TOOLCHAIN_FILE MATCHES "vita.toolchain.cmake")
     include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
     set(VITA TRUE)
+    # VITA builds require -fno-short-enums because SDL expects enums to be sizeof(int)
+    # This must be applied globally to all targets including FetchContent dependencies
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-short-enums" CACHE STRING "" FORCE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-short-enums" CACHE STRING "" FORCE)
 endif()
 
 include(FetchContent)
