@@ -101,8 +101,9 @@ if (VITA)
         COMMAND cp "$<TARGET_FILE:bennugd_libretro_merged>" libretro_vita.a
         COMMAND touch runloop.c # Force a relink 
         # https://docs.libretro.com/development/retroarch/compilation/psvita/
-        # Pass ARCHFLAGS as Make variable (not env var) to override Makefile's := assignment
-        COMMAND make -j -f Makefile.vita "ARCHFLAGS=-march=armv7-a -mfpu=neon -mfloat-abi=hard -DVITA -fno-short-enums"
+        # Patch Makefile.vita to add -fno-short-enums to ARCHFLAGS for ABI compatibility
+        COMMAND sed -i "s/ARCHFLAGS := -march=armv7-a/ARCHFLAGS := -fno-short-enums -march=armv7-a/" Makefile.vita
+        COMMAND make -j -f Makefile.vita
         INSTALL_COMMAND ""
         DEPENDS bennugd_libretro_merged
     )
