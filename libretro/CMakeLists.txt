@@ -1,23 +1,8 @@
 cmake_minimum_required(VERSION 3.14...3.31)
 include(FetchContent)
 include(CheckSymbolExists)
-
-FetchContent_Declare(
-  libretro-common
-  GIT_REPOSITORY https://github.com/libretro/libretro-common.git
-  GIT_TAG        0abedaac6a795c093f2e1a22f3028fca9efdf3c9
-  CONFIGURE_COMMAND " "
-  BUILD_COMMAND " "
-  INSTALL_COMMAND " "
-)
-
-FetchContent_MakeAvailable(  libretro-common )
-
-include_directories(${libretro-common_SOURCE_DIR}/include ../core/bgdi/include ../core/bgdrtm/include)
-add_subdirectory(sdl-libretro)
-
-add_subdirectory(sdl_mixer-libretro)
-set(SDL_MIXER_LIBRARIES "sdl_mixer-libretro" PARENT_SCOPE)
+include(ExternalProject)
+include(bundle_static_library)
 
 GET_PROPERTY(TARGET_SUPPORTS_SHARED_LIBS_PROPERTY GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS)
 
@@ -27,6 +12,7 @@ else()
     set( CORE_LIBRARY_TYPE STATIC)
 endif()
  
+
 add_library(bennugd_libretro ${CORE_LIBRARY_TYPE}
     ${libretro-common_SOURCE_DIR}/libco/libco.c
     ${libretro-common_SOURCE_DIR}/vfs/vfs_implementation.c
@@ -74,9 +60,11 @@ if (EMSCRIPTEN)
         SUFFIX ".bc"
         LINKER_LANGUAGE C
     )
-
+if (CMAKE_SYSTEM_NAME MATCHES "NintendoSwitch")
+    target_compile_definitions(bennugd_libretro PRIVATE SWITCH=1 )
 endif()
 
+endif()
 
 target_include_directories(bennugd_libretro PRIVATE "${libretro-common_SOURCE_DIR}/include")
 
@@ -96,4 +84,22 @@ set_target_properties(bennugd_libretro PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEA
 
 target_link_libraries(bennugd_libretro bgdi)
 
-add_library(SDL::SDL ALIAS sdl-libretro)
+if (CMAKE_SYSTEM_NAME MATCHES "NintendoSwitch")
+
+    bundle_static_library(bennugd_libretro bennugd_libretro_merged)
+
+    ExternalProject_Add( retroarch
+        GIT_REPOSITORY https://github.com/diekleinekuh/RetroArch.git
+        GIT_TAG switch_audio_drivers_initially_blocking
+        CONFIGURE_COMMAND ""
+        BUILD_IN_SOURCE TRUE
+        BUILD_ALWAYS TRUE
+        BUILD_COMMAND ${CMAKE_COMMAND} -E echo "Starting retroarch build"
+        COMMAND cp "$<TARGET_FILE:bennugd_libretro_merged>" libretro_libnx.a
+        COMMAND touch runloop.c # Force a relink 
+        COMMAND make NO_ICON=1 -j -f Makefile.libnx
+        COMMAND cp retroarch_switch.nro ${CMAKE_BINARY_DIR}/bennugd_libretro_libnx.nro
+        INSTALL_COMMAND ""
+        DEPENDS bennugd_libretro_merged
+    )
+endif()
