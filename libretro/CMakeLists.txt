@@ -97,14 +97,17 @@ if (VITA)
     ExternalProject_Add( retroarch
         GIT_REPOSITORY https://github.com/libretro/RetroArch.git
         GIT_TAG v1.22.2
+        PATCH_COMMAND ${CMAKE_COMMAND} -E env
+            PATCH_FILE=${CMAKE_SOURCE_DIR}/cmake/patches/retroarch-v1.22.2-vita2d-matrix-cast.patch
+            sh -c "grep -q 'mvp_no_rot.data' gfx/drivers/vita2d_gfx.c || patch -p1 -i \"$PATCH_FILE\""
         CONFIGURE_COMMAND ""
         BUILD_IN_SOURCE TRUE
         BUILD_ALWAYS TRUE
         BUILD_COMMAND ${CMAKE_COMMAND} -E echo "Starting retroarch build for PS Vita"
         COMMAND cp "$<TARGET_FILE:bennugd_libretro_merged>" libretro_vita.a
-        # RetroArch v1.22.2 vita2d_gfx passes math_matrix_4x4* where the header wants float*.
-        # GCC 14+ treats that as a hard error; keep it a warning for this vendored tree.
-        COMMAND make -f Makefile.vita VITA_TITLE_ID=BGDL00001 VITA_TITLE_NAME=BennuGD WHOLE_ARCHIVE_LINK=1 "CFLAGS=-Wno-error=incompatible-pointer-types"
+        # Do not pass CFLAGS= on the make command line — that suppresses Makefile
+        # `CFLAGS += $(DEFINES)` and drops -DHAVE_MENU / -DHAVE_GFX_WIDGETS.
+        COMMAND make -f Makefile.vita VITA_TITLE_ID=BGDL00001 VITA_TITLE_NAME=BennuGD WHOLE_ARCHIVE_LINK=1
         COMMAND cp retroarch_vita.self ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.self
         COMMAND cp retroarch_vita.vpk ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.vpk
         INSTALL_COMMAND ""
