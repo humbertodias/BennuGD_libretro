@@ -76,7 +76,11 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "compile as PIC by default")
 if (CMAKE_TOOLCHAIN_FILE MATCHES "vita.toolchain.cmake")
     include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
     set(VITA TRUE)
+    # Vita/SCE ELF rejects GOT relocs (e.g. R_ARM_BASE_PREL = 25) from PIC objects.
+    set(CMAKE_POSITION_INDEPENDENT_CODE OFF CACHE BOOL "compile as PIC by default" FORCE)
     set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
+    string(APPEND CMAKE_C_FLAGS " -fno-pic -fno-PIC -fno-pie -fno-PIE")
+    string(APPEND CMAKE_CXX_FLAGS " -fno-pic -fno-PIC -fno-pie -fno-PIE")
 endif()
 
 include(FetchContent)

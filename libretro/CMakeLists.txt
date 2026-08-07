@@ -91,19 +91,20 @@ endif()
 
 if (VITA)
     # https://docs.libretro.com/development/retroarch/compilation/psvita/
+    # Static Vita cores are linked into RetroArch; install the VPK Makefile.vita produces.
+    # Do not run vita-make-fself on the raw .elf — it needs the .velf from vita-elf-create.
     bundle_static_library(bennugd_libretro bennugd_libretro_merged)
     ExternalProject_Add( retroarch
         GIT_REPOSITORY https://github.com/libretro/RetroArch.git
-        GIT_TAG master
+        GIT_TAG v1.22.2
         CONFIGURE_COMMAND ""
         BUILD_IN_SOURCE TRUE
         BUILD_ALWAYS TRUE
         BUILD_COMMAND ${CMAKE_COMMAND} -E echo "Starting retroarch build for PS Vita"
         COMMAND cp "$<TARGET_FILE:bennugd_libretro_merged>" libretro_vita.a
-        #COMMAND make -f Makefile.vita.salamander
-        #COMMAND make -f Makefile.griffin platform=vita
-        COMMAND make -f Makefile.vita
-        COMMAND vita-make-fself retroarch_vita.elf ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.self
+        COMMAND make -f Makefile.vita VITA_TITLE_ID=BGDL00001 VITA_TITLE_NAME=BennuGD WHOLE_ARCHIVE_LINK=1
+        COMMAND cp retroarch_vita.self ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.self
+        COMMAND cp retroarch_vita.vpk ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.vpk
         INSTALL_COMMAND ""
         DEPENDS bennugd_libretro_merged
     )
