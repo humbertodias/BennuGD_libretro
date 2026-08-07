@@ -97,9 +97,8 @@ if (VITA)
     ExternalProject_Add( retroarch
         GIT_REPOSITORY https://github.com/libretro/RetroArch.git
         GIT_TAG v1.22.2
-        PATCH_COMMAND ${CMAKE_COMMAND} -E env
-            PATCH_FILE=${CMAKE_SOURCE_DIR}/cmake/patches/retroarch-v1.22.2-vita2d-matrix-cast.patch
-            sh -c "grep -q 'mvp_no_rot.data' gfx/drivers/vita2d_gfx.c || patch -p1 -i \"$PATCH_FILE\""
+        # vitasdk image has no `patch`; sed is enough for this one-line GCC 14 fix.
+        PATCH_COMMAND sh -c "grep -q 'mvp_no_rot.data' gfx/drivers/vita2d_gfx.c || sed -i 's#&vita2d->mvp_no_rot#(float *)vita2d->mvp_no_rot.data#' gfx/drivers/vita2d_gfx.c"
         CONFIGURE_COMMAND ""
         BUILD_IN_SOURCE TRUE
         BUILD_ALWAYS TRUE
