@@ -216,6 +216,16 @@ if(libretro_core)
 
     FetchContent_MakeAvailable(  libretro-common )
 
+    # libretro-common scefiber.co_switch never calls sceFiberRun (assigns
+    # co_active_ before the test). Replace with a fixed copy for Vita builds.
+    if (VITA)
+        configure_file(
+            "${CMAKE_CURRENT_SOURCE_DIR}/libretro/vita/scefiber.c"
+            "${libretro-common_SOURCE_DIR}/libco/scefiber.c"
+            COPYONLY
+        )
+    endif()
+
     include_directories(${libretro-common_SOURCE_DIR}/include)
     add_subdirectory(libretro/sdl-libretro)
     add_subdirectory(libretro/sdl_mixer-libretro)
