@@ -153,7 +153,7 @@ jobs:
         -DCMAKE_WARN_DEPRECATED=false
         -DUSE_WOLFSSL=1
         -DWOLFSSL_ASM=0
-        -DCMAKE_C_FLAGS="-DSOMAXCONN=128 -fno-short-enums"
+        -DCMAKE_C_FLAGS="-DSOMAXCONN=128 -fno-short-enums -fno-pic -fno-PIC -fno-pie -fno-PIE"
         -DUNIX=FALSE
         -S $GITHUB_WORKSPACE
     - name: Build
@@ -162,7 +162,10 @@ jobs:
       uses: actions/upload-artifact@v5
       with:
         name: bennugd_libretro.vita.Release
-        path: ${{ steps.strings.outputs.build-output-dir }}/bennugd_libretro_vita.self
+        path: |
+          ${{ steps.strings.outputs.build-output-dir }}/bennugd_libretro_vita.self
+          ${{ steps.strings.outputs.build-output-dir }}/bennugd_libretro_vita.vpk
+          ${{ steps.strings.outputs.build-output-dir }}/bennugd_libretro.info
 
   master-branch-release:
     runs-on: ubuntu-latest

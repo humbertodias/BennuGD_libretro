@@ -91,19 +91,29 @@ endif()
 
 if (VITA)
     # https://docs.libretro.com/development/retroarch/compilation/psvita/
+    # Static Vita cores are linked into RetroArch; install the VPK Makefile.vita produces.
+    # Do not run vita-make-fself on the raw .elf — it needs the .velf from vita-elf-create.
     bundle_static_library(bennugd_libretro bennugd_libretro_merged)
     ExternalProject_Add( retroarch
         GIT_REPOSITORY https://github.com/libretro/RetroArch.git
-        GIT_TAG master
+        GIT_TAG v1.22.2
+        # vitasdk image has no `patch`; sed is enough for this one-line GCC 14 fix.
+        PATCH_COMMAND sh -c "grep -q 'mvp_no_rot.data' gfx/drivers/vita2d_gfx.c || sed -i 's#&vita2d->mvp_no_rot#(float *)vita2d->mvp_no_rot.data#' gfx/drivers/vita2d_gfx.c"
         CONFIGURE_COMMAND ""
         BUILD_IN_SOURCE TRUE
         BUILD_ALWAYS TRUE
         BUILD_COMMAND ${CMAKE_COMMAND} -E echo "Starting retroarch build for PS Vita"
         COMMAND cp "$<TARGET_FILE:bennugd_libretro_merged>" libretro_vita.a
-        #COMMAND make -f Makefile.vita.salamander
-        #COMMAND make -f Makefile.griffin platform=vita
-        COMMAND make -f Makefile.vita
-        COMMAND vita-make-fself retroarch_vita.elf ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.self
+        # Do not pass CFLAGS= on the make command line — that suppresses Makefile
+        # `CFLAGS += $(DEFINES)` and drops -DHAVE_MENU / -DHAVE_GFX_WIDGETS.
+        # Do not use WHOLE_ARCHIVE_LINK: RetroArch already links libretro-common
+        # (rthreads, file_path, …); whole-archive duplicates those symbols.
+        COMMAND make -f Makefile.vita VITA_TITLE_ID=BGDL00001 VITA_TITLE_NAME=BennuGD
+        COMMAND cp retroarch_vita.self ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.self
+        # Vita scans app0:/ for eboot.bin and loads app0:/info/eboot.info for
+        # Load Content extension filters (dat|dcb). Makefile.vita only packs the SELF.
+        COMMAND vita-pack-vpk -s param.sfo -b retroarch_vita.self -a ${CMAKE_SOURCE_DIR}/bennugd_libretro.info=info/eboot.info ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.vpk
+        COMMAND cp ${CMAKE_SOURCE_DIR}/bennugd_libretro.info ${CMAKE_BINARY_DIR}/bennugd_libretro.info
         INSTALL_COMMAND ""
         DEPENDS bennugd_libretro_merged
     )
