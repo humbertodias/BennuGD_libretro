@@ -778,19 +778,25 @@ void retro_init(void)
     }
 
 
+    /* Prefer 32-bit: SDL ListModes only accepted 32bpp historically, and
+     * RGB565 with a failed 16bpp SetVideoMode yields a black screen (e.g. Vita). */
     enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
-    //if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+    if (environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+    {
+        libretro_depth = 32;
+    }
+    else
     {
         log_cb(RETRO_LOG_WARN, "RETRO_PIXEL_FORMAT_XRGB8888 not supported.\n");
         fmt = RETRO_PIXEL_FORMAT_RGB565;
-        if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+        if (environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
         {
-            log_cb(RETRO_LOG_WARN, "RETRO_PIXEL_FORMAT_RGB565 not supported.\n");
-            libretro_depth=15;
+            libretro_depth = 16;
         }
         else
         {
-            libretro_depth=16;
+            log_cb(RETRO_LOG_WARN, "RETRO_PIXEL_FORMAT_RGB565 not supported.\n");
+            libretro_depth = 15;
         }
     }
 

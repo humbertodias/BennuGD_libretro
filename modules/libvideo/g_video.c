@@ -356,9 +356,15 @@ extern int bennugd_content_height;
 
         if ( enable_scale )
         {
+#if LIBRETRO_CORE
+            /* Keep the depth negotiated with the frontend (often 32bpp). */
+            depth = libretro_depth;
+            enable_16bits = ( depth == 16 );
+            enable_32bits = ( depth == 32 );
+#else
             enable_16bits = 1;
             depth = 16;
-
+#endif
             surface_width  *= 2;
             surface_height *= 2;
         }
