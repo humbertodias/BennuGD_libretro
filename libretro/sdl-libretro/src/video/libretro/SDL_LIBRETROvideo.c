@@ -508,18 +508,15 @@ const static SDL_Rect *vid_modes[] = {
 
 SDL_Rect **LIBRETRO_ListModes(_THIS, SDL_PixelFormat *format, Uint32 flags)
 {
-	/* Software framebuffer: any resolution is fine for common depths.
-	 * Returning NULL makes SDL_SetVideoMode fail (black screen on Vita when
-	 * the core requests 16bpp while only 32 was listed). */
-	switch (format->BitsPerPixel) {
-	case 8:
-	case 15:
-	case 16:
-	case 32:
-		return (SDL_Rect **) -1;
+
+	switch(format->BitsPerPixel) {
+	
+	case 32:		
+		return (SDL_Rect **) -1;//&vid_modes;
 	default:
 		return NULL;
 	}
+	//return (SDL_Rect **) -1;
 }
 
 SDL_Surface *LIBRETRO_SetVideoMode(_THIS, SDL_Surface *current,

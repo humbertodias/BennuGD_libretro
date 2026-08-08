@@ -76,13 +76,7 @@ int bennugd_content_height=0;
 char* libretro_base_dir;
 bool retro_enable_frame_limiter=true;
 bool force_frame_limiter=false;
-/* Vita FAT is already case-insensitive; the emulation map can block all
- * opens if directory indexing fails (empty map → every fopen returns NULL). */
-#if defined(VITA)
-bool case_insensitive_file_io=false;
-#else
 bool case_insensitive_file_io=true;
-#endif
 
 typedef enum enum_libretro_scale_mode_override
 {
@@ -306,11 +300,7 @@ static void set_core_options()
             .info = "Emulate dealing with file names in a case insensitive way even though the underlying filesystem is case sensitive.\n"
                     "Changes take affect when reloading content.\n"
             ,
-#if defined(VITA)
-            .default_value = "false",
-#else
             .default_value = "true",
-#endif
             .values = { { "true", "True"}, { "false", "False"}, { NULL, NULL} }
         },
         {
@@ -599,11 +589,7 @@ static void update_variables()
     }
 
     // Case insensitive file io emulation
-#if defined(VITA)
-    case_insensitive_file_io = get_boolean_option(case_insensitive_file_io_opt, false);
-#else
     case_insensitive_file_io = get_boolean_option(case_insensitive_file_io_opt, true);
-#endif
 
     // Mouse emulation mode
     {
@@ -792,25 +778,19 @@ void retro_init(void)
     }
 
 
-    /* Prefer 32-bit: SDL ListModes only accepted 32bpp historically, and
-     * RGB565 with a failed 16bpp SetVideoMode yields a black screen (e.g. Vita). */
     enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
-    if (environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
-    {
-        libretro_depth = 32;
-    }
-    else
+    //if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
     {
         log_cb(RETRO_LOG_WARN, "RETRO_PIXEL_FORMAT_XRGB8888 not supported.\n");
         fmt = RETRO_PIXEL_FORMAT_RGB565;
-        if (environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+        if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
         {
-            libretro_depth = 16;
+            log_cb(RETRO_LOG_WARN, "RETRO_PIXEL_FORMAT_RGB565 not supported.\n");
+            libretro_depth=15;
         }
         else
         {
-            log_cb(RETRO_LOG_WARN, "RETRO_PIXEL_FORMAT_RGB565 not supported.\n");
-            libretro_depth = 15;
+            libretro_depth=16;
         }
     }
 
@@ -905,18 +885,7 @@ bool retro_load_game(const struct retro_game_info *info)
         &retro_frame_time_callback
     });
 
-    bgd_finished = false;
     co_switch(bgd_thread);
-
-    /* bgdi_main returns immediately on missing/invalid DCB; that used to look
-     * like a successful load with a permanent black screen. */
-    if (bgd_finished)
-    {
-        log_cb(RETRO_LOG_ERROR,
-               "BennuGD exited during load — check that the file is a valid .dcb/.dat and assets are beside it\n");
-        return false;
-    }
-
     return true;
 }
 
