@@ -106,7 +106,9 @@ if (VITA)
         COMMAND cp "$<TARGET_FILE:bennugd_libretro_merged>" libretro_vita.a
         # Do not pass CFLAGS= on the make command line — that suppresses Makefile
         # `CFLAGS += $(DEFINES)` and drops -DHAVE_MENU / -DHAVE_GFX_WIDGETS.
-        COMMAND make -f Makefile.vita VITA_TITLE_ID=BGDL00001 VITA_TITLE_NAME=BennuGD WHOLE_ARCHIVE_LINK=1
+        # Do not use WHOLE_ARCHIVE_LINK: RetroArch already links libretro-common
+        # (rthreads, file_path, …); whole-archive duplicates those symbols.
+        COMMAND make -f Makefile.vita VITA_TITLE_ID=BGDL00001 VITA_TITLE_NAME=BennuGD
         COMMAND cp retroarch_vita.self ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.self
         COMMAND cp retroarch_vita.vpk ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.vpk
         INSTALL_COMMAND ""
