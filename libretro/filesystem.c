@@ -26,6 +26,26 @@ size_t bgd_dir_root_len = 0;
 size_t retro_dir_root_len = 0;
 
 static bool case_insensitive_io = false;
+static size_t file_map_entry_count = 0;
+
+/* libretro path_is_absolute() only treats leading '/' as absolute.
+ * Vita/PSP use device paths like ux0:/data/... which must count too. */
+static bool fs_path_is_absolute(const char *path)
+{
+    const char *p;
+
+    if (!path || !*path)
+        return false;
+
+    if (path_is_absolute(path))
+        return true;
+
+    p = path;
+    while (*p && (isalnum((unsigned char)*p) || *p == '_'))
+        p++;
+
+    return (p > path && *p == ':');
+}
 
 
 #ifdef _MSC_VER
@@ -73,32 +93,36 @@ static void create_file_map(const char* root_dir, char * directory_name, char* b
 {
     snprintf(buffer, buffer_size, "%s%s", root_dir, directory_name);
     struct RDIR* dir = retro_opendir_include_hidden(buffer, true);
-    if (dir)
+    if (!dir)
     {
-        while((retro_readdir(dir)))
+        log_cb(RETRO_LOG_WARN, "create_file_map: cannot open dir %s\n", buffer);
+        return;
+    }
+
+    while((retro_readdir(dir)))
+    {
+        const char* entry_name = retro_dirent_get_name(dir);
+        if (strcmp(entry_name, "..")==0 || strcmp(entry_name, ".")==0)
         {
-            const char* entry_name = retro_dirent_get_name(dir);
-            if (strcmp(entry_name, "..")==0 || strcmp(entry_name, ".")==0)
-            {
-                continue;
-            }
-
-            int buffer_used = *directory_name ? snprintf(buffer, buffer_size, "%s/%s", directory_name, entry_name) : snprintf(buffer, buffer_size, "%s", entry_name);
-            string_to_lower(buffer);
-
-            file_map_t* entry = RHMAP_PTR_STR(file_map, buffer);
-            buffer_used = *directory_name ? snprintf(buffer, buffer_size, "%s%s/%s", root_dir, directory_name, entry_name) : snprintf(buffer, buffer_size, "%s%s", root_dir, entry_name);
-            entry->real_name = strldup(buffer, buffer_used+1);
-            entry->is_dir = retro_dirent_is_dir(dir, NULL);
-
-            if (entry->is_dir)
-            {
-                create_file_map(root_dir, entry->real_name+strlen(root_dir), buffer, buffer_size);
-            }
+            continue;
         }
 
-        retro_closedir(dir);
+        int buffer_used = *directory_name ? snprintf(buffer, buffer_size, "%s/%s", directory_name, entry_name) : snprintf(buffer, buffer_size, "%s", entry_name);
+        string_to_lower(buffer);
+
+        file_map_t* entry = RHMAP_PTR_STR(file_map, buffer);
+        buffer_used = *directory_name ? snprintf(buffer, buffer_size, "%s%s/%s", root_dir, directory_name, entry_name) : snprintf(buffer, buffer_size, "%s%s", root_dir, entry_name);
+        entry->real_name = strldup(buffer, buffer_used+1);
+        entry->is_dir = retro_dirent_is_dir(dir, NULL);
+        file_map_entry_count++;
+
+        if (entry->is_dir)
+        {
+            create_file_map(root_dir, entry->real_name+strlen(root_dir), buffer, buffer_size);
+        }
     }
+
+    retro_closedir(dir);
 }
 
 static void destroy_file_map()
@@ -112,6 +136,7 @@ static void destroy_file_map()
     }
     RHMAP_FREE(file_map);
     file_map = NULL;
+    file_map_entry_count = 0;
 }
 
 typedef struct directory_entries
@@ -123,7 +148,7 @@ directory_entries_t* directory_entries_map = NULL;
 
 static void remove_from_filename_cache(const char* filename)
 {
-    if (path_is_absolute(filename))
+    if (fs_path_is_absolute(filename))
     {
         THREAD_LOCAL static char buffer[PATH_MAX_LENGTH];
         if (strstr(filename, retro_dir_root)==filename)
@@ -132,20 +157,20 @@ static void remove_from_filename_cache(const char* filename)
             string_to_lower(buffer);
             
             slock_lock(file_map_lock);
-            assert(RHMAP_HAS_STR(file_map, buffer));
-            RHMAP_DEL_STR(file_map, buffer);
+            if (RHMAP_HAS_STR(file_map, buffer))
+            {
+                RHMAP_DEL_STR(file_map, buffer);
+                if (file_map_entry_count)
+                    file_map_entry_count--;
+            }
             slock_unlock(file_map_lock);
         }
-    }
-    else
-    {
-        assert(false);
     }
 }
 
 static void add_filename_to_cache(const char* filename)
 {
-    if (path_is_absolute(filename))
+    if (fs_path_is_absolute(filename))
     {
         THREAD_LOCAL static char buffer[PATH_MAX_LENGTH];
         if (strstr(filename, retro_dir_root)==filename)
@@ -156,16 +181,18 @@ static void add_filename_to_cache(const char* filename)
             char * real_name = strdup(filename);
             
             slock_lock(file_map_lock);
-            assert(!RHMAP_HAS_STR(file_map, buffer));
-
-            file_map_t* entry = RHMAP_PTR_STR(file_map, buffer);
-            entry->real_name = real_name;
+            if (!RHMAP_HAS_STR(file_map, buffer))
+            {
+                file_map_t* entry = RHMAP_PTR_STR(file_map, buffer);
+                entry->real_name = real_name;
+                file_map_entry_count++;
+            }
+            else
+            {
+                free(real_name);
+            }
             slock_unlock(file_map_lock);
         }
-    }
-    else
-    {
-        assert(false);
     }
 }
 
@@ -231,6 +258,7 @@ static void remove_from_filename_cache(const char* filename) {}
 void init_filesystem(const char * content_path, const char * save_dir, struct retro_vfs_interface_info* vfs_info, bool in_case_insensitive_io)
 {
     case_insensitive_io = in_case_insensitive_io;
+    file_map_entry_count = 0;
 
     filestream_vfs_init(vfs_info);
     path_vfs_init(vfs_info);
@@ -247,6 +275,9 @@ void init_filesystem(const char * content_path, const char * save_dir, struct re
 
     bgd_current_dir=strdup(bgd_dir_root);
 
+    log_cb(RETRO_LOG_INFO, "filesystem: content=%s root=%s case_insensitive=%d\n",
+           content_path, retro_dir_root, (int)case_insensitive_io);
+
 #if CASE_INSENSITIVE_FILESYSTEM_EMULATION
     if (case_insensitive_io)
     {
@@ -254,6 +285,7 @@ void init_filesystem(const char * content_path, const char * save_dir, struct re
         char buffer[4096];
         size_t buffer_size = sizeof(buffer)/sizeof(buffer[0]);
         create_file_map(retro_dir_root, "", buffer, buffer_size);
+        log_cb(RETRO_LOG_INFO, "filesystem: indexed %zu path(s)\n", file_map_entry_count);
     }
 #endif
 }
@@ -278,7 +310,8 @@ char* get_content_basename()
 
 const char* resolve_bgd_path(const char * dir)
 {
-    if (path_is_absolute(dir))
+    /* Absolute host paths (/... or ux0:/...) are left unchanged. */
+    if (fs_path_is_absolute(dir))
     {
         return dir;
     }
@@ -298,7 +331,7 @@ const char* to_retro_path(const char * dir, bool try_partial_match, filename_cac
 {
     THREAD_LOCAL static char buffer[PATH_MAX_LENGTH];
 
-    if (path_is_absolute(dir))
+    if (fs_path_is_absolute(dir))
     {
         // Check if the passed directory is relative to the fake root directory
         if (strstr(dir, bgd_dir_root)==dir)
@@ -316,9 +349,13 @@ const char* to_retro_path(const char * dir, bool try_partial_match, filename_cac
             *cache_response = FCR_NONE;
             return buffer;
         }
+
+        /* Already a host absolute path (e.g. ux0:/...). */
+        *cache_response = FCR_NONE;
+        return dir;
     }
 
-    assert(false);
+    log_cb(RETRO_LOG_ERROR, "to_retro_path: unexpected relative path %s\n", dir);
     *cache_response = FCR_NONE;
     return dir;
 }
@@ -344,8 +381,9 @@ RFILE * fopen_libretro ( const char * filename, const char * mode )
     const char* retro_filename = to_retro_path(resolve_bgd_path(filename), mode_can_create_new_file, &cache_response);
     assert(retro_filename);
 
-    // don't even try to open if the cache says no
-    if (cache_response==FCR_MISS && mode_can_create_new_file==false)
+    /* Only trust a complete map. An empty/failed scan used to make every
+     * read return NULL (black screen on Vita when ux0: dir listing failed). */
+    if (cache_response==FCR_MISS && mode_can_create_new_file==false && file_map_entry_count > 0)
     {
         return NULL;
     }
