@@ -165,6 +165,7 @@ jobs:
         path: |
           ${{ steps.strings.outputs.build-output-dir }}/bennugd_libretro_vita.self
           ${{ steps.strings.outputs.build-output-dir }}/bennugd_libretro_vita.vpk
+          ${{ steps.strings.outputs.build-output-dir }}/bennugd_libretro.info
 
   master-branch-release:
     runs-on: ubuntu-latest

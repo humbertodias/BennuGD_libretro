@@ -110,7 +110,10 @@ if (VITA)
         # (rthreads, file_path, …); whole-archive duplicates those symbols.
         COMMAND make -f Makefile.vita VITA_TITLE_ID=BGDL00001 VITA_TITLE_NAME=BennuGD
         COMMAND cp retroarch_vita.self ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.self
-        COMMAND cp retroarch_vita.vpk ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.vpk
+        # Vita scans app0:/ for eboot.bin and loads app0:/info/eboot.info for
+        # Load Content extension filters (dat|dcb). Makefile.vita only packs the SELF.
+        COMMAND vita-pack-vpk -s param.sfo -b retroarch_vita.self -a ${CMAKE_SOURCE_DIR}/bennugd_libretro.info=info/eboot.info ${CMAKE_BINARY_DIR}/bennugd_libretro_vita.vpk
+        COMMAND cp ${CMAKE_SOURCE_DIR}/bennugd_libretro.info ${CMAKE_BINARY_DIR}/bennugd_libretro.info
         INSTALL_COMMAND ""
         DEPENDS bennugd_libretro_merged
     )
